@@ -2,7 +2,7 @@
 
 > **Trust Label:** `educational-reference`  
 > **Verification:** [VERIFICATION-LOG.md](VERIFICATION-LOG.md)  
-> **Status:** Educational non-proof reference (intentional minimal surface)  
+> **Status:** Educational non-proof reference + Deep documentation pass  
 > **Parent Catalog:** [wax-ecosystem-blueprint-catalog](https://github.com/pixel-journey/wax-ecosystem-blueprint-catalog)
 
 **One-sentence goal:** Teach, with working code and tests, that a matching hash is **not** zero-knowledge and that this repository deliberately does **not** create, verify, or attest any zero-knowledge proof on WAX or elsewhere.
@@ -12,14 +12,25 @@
 
 ---
 
+## Deep educational documentation
+
+| Guide | What it teaches |
+|-------|-----------------|
+| [docs/WHY-NOT-ZK.md](docs/WHY-NOT-ZK.md) | Hash vs ZK, common confusions, catalog boundaries, review prompts |
+| [docs/REQUEST-BUILDERS.md](docs/REQUEST-BUILDERS.md) | Unsent builders, validation rules, worked examples, what not to do |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Layers, honesty boundaries, extension rules |
+
+---
+
 ## 1. Overview & Goal
 
 This blueprint exists to prevent a common educational mistake: treating a hash comparison, a signed message, or a simple attestation pattern as if it were a zero-knowledge proof.
 
 It provides:
 - A pure, unit-tested refusal function that always returns `proof: false`
-- Typed, validated HTTP request *builders* for common WAX/Antelope public APIs (Hyperion-style history, AtomicAssets, chain tables) that are **built and never sent** by this package
+- Typed, validated HTTP request *builders* for common WAX/Antelope public APIs that are **built and never sent** by this package
 - An offline demo surface so the educational point is visible without network side effects
+- Deep documentation that states what ZK is *not* in this context
 
 **Why it matters for WAX / Antelope:**
 - Developers frequently encounter “attestation”, “proof”, and “credential” language.
@@ -51,13 +62,8 @@ It provides:
 - “Can I safely say this client-side code attests something on-chain?” → Not with this package.
 - “Where do the actual request shapes for WAX public APIs live in an educational form?” → Here, as builders only.
 
-### Inspirations
-- Catalog discipline that prioritizes accurate trust labels
-- Separation of “how to talk to public APIs” from “how to claim cryptographic properties”
-
 **Related Blueprints (synergy — read carefully):**
-- For hash / credential patterns that *can* be overclaimed, see `wax-verifiable-credential-patterns` (and similar). Do **not** move a proof library into this repository.
-- Other educational request-builder and soft-fail patterns across the catalog.
+- For hash / credential patterns that *can* be overclaimed, see `wax-verifiable-credential-patterns`. Do **not** move a proof library into this repository.
 
 ---
 
@@ -66,7 +72,7 @@ It provides:
 ### 3.1 Visual & Interaction Design
 - Offline-first educational page (`src/Demo.tsx`)
 - Clear visual and textual statements that no proof is produced
-- Case list that reinforces the educational scenarios without implying execution
+- Case list that reinforces educational scenarios without implying execution
 
 ### 3.2 Key Pieces
 | Piece | Role |
@@ -74,13 +80,12 @@ It provides:
 | `src/proof.ts` | Pure refusal — always `{ proof: false, why: ... }` |
 | `src/proof.test.ts` | Locks the non-claim |
 | `src/api.ts` | Validated, unsent WAX/Antelope request builders |
-| `src/usecases.ts` | Example compositions of those builders |
-| `src/api.test.ts` / `src/usecases.test.ts` | Prove requests are built and not sent |
+| `src/usecases.ts` | Example compositions |
 | `src/Demo.tsx` / `src/Cases.tsx` | Offline educational surface |
-| `app/page.tsx` | Next.js entry |
+| `docs/*` | Deep teaching guides |
 
 ### 3.3 Accessibility & Inclusive Design
-- Straightforward language and structure preferred over cryptographic jargon that could mislead
+- Straightforward language preferred over cryptographic jargon that could mislead
 
 ### 3.4 Performance & Optimization Targets
 - Pure functions only for the core claim
@@ -90,51 +95,34 @@ It provides:
 
 ## 4. Technical Architecture
 
-### 4.1 Core Tech Stack
-- TypeScript (strict) + Vitest
-- Next.js App Router for the offline demo shell
-- No ZK libraries, no proving systems, no remote model or circuit dependencies
+See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the full layer diagram and boundaries.
 
-### 4.2 Non-Proof Flow
+### Non-Proof Flow
 ```
 attestation()
     → { proof: false, why: "This package does not create or verify a zero-knowledge proof..." }
 ```
 
-### 4.3 Request Builder Pattern (unsent)
-Every builder returns an `HttpRequest` object with:
-- `method`, `url`, optional `body`
-- **`executed: false`** (literal)
+### Request Builder Pattern (unsent)
+Every builder returns `{ method, url, body?, executed: false }`. No `fetch`, no wallet.
 
-No function in this package calls `fetch` or a wallet. Hosts are public examples; availability is not a claim of this repository.
-
-### 4.4 Folder Structure (current)
+### Folder Structure
 ```
 app/
-  layout.tsx
-  page.tsx
-  globals.css
 src/
-  proof.ts              # The pure rules (proof is false)
-  proof.test.ts
-  api.ts                # Unsent request builders
-  api.test.ts
-  usecases.ts
-  usecases.test.ts
-  Demo.tsx
-  Cases.tsx
-.github/workflows/ci.yml
-VERIFICATION-LOG.md
+  proof.ts · proof.test.ts
+  api.ts · api.test.ts
+  usecases.ts · usecases.test.ts
+  Demo.tsx · Cases.tsx
+docs/
+  WHY-NOT-ZK.md
+  REQUEST-BUILDERS.md
 ARCHITECTURE.md
+VERIFICATION-LOG.md
 PUBLIC-READINESS.md
 spec.yaml
 LICENSE
 ```
-
-### 4.5 Security & Privacy Notes
-- No private keys, no signing, no on-chain submission from this package
-- Request builders only construct URLs and bodies; execution is out of scope
-- The educational value is the *absence* of a proof system, not the presence of one
 
 ---
 
@@ -146,7 +134,6 @@ import { attestation } from "./src/proof";
 
 const result = attestation();
 // result.proof === false
-// result.why explains that a matching hash is not zero knowledge
 ```
 
 ### Build an unsent history request
@@ -155,20 +142,9 @@ import { historyActions, HISTORY_ORIGIN } from "./src/api";
 
 const req = historyActions(HISTORY_ORIGIN, "someaccount", "eosio.token:transfer", 20);
 // req.executed === false
-// No network call has occurred
 ```
 
-### Build other common unsent queries
-```ts
-import {
-  getAccount,
-  currencyBalance,
-  atomicAssets,
-  tableRows,
-  CHAIN_ORIGIN,
-  ATOMIC_ORIGIN,
-} from "./src/api";
-```
+More examples: [docs/REQUEST-BUILDERS.md](docs/REQUEST-BUILDERS.md).
 
 ---
 
@@ -176,13 +152,9 @@ import {
 
 ```bash
 npm install
-npm test          # proof, api, usecases
-npm run dev       # offline educational page
+npm test
+npm run dev
 ```
-
-- `src/proof.test.ts` verifies the permanent non-claim
-- `src/api.test.ts` and `src/usecases.test.ts` verify builders produce valid shapes with `executed: false`
-- No test claims a live endpoint match or an on-chain attestation
 
 See [VERIFICATION-LOG.md](VERIFICATION-LOG.md).
 
@@ -192,8 +164,9 @@ See [VERIFICATION-LOG.md](VERIFICATION-LOG.md).
 
 **Current state (intentional):**
 - Minimal, correct non-proof core
-- Unsent request builders shared in spirit with other educational repos
-- Offline demo and verification log
+- Unsent request builders
+- Offline demo
+- Deep educational documentation
 
 **Explicit non-goals (do not “complete” into a proof system here):**
 - Adding a ZK proving library
@@ -201,22 +174,18 @@ See [VERIFICATION-LOG.md](VERIFICATION-LOG.md).
 - Submitting or verifying on-chain attestations from this package
 - Treating a hash match as a proof
 
-If a full ZK or credential pattern is needed, it belongs in a differently named, differently labeled repository.
-
 ---
 
 ## 8. Visual References & Expected Experience
 
-**Key screen:**  
-Offline page that states clearly that no proof is produced, shows the refusal result, and optionally lists educational use-cases that still do not execute network calls.
+Offline page that states clearly that no proof is produced, shows the refusal result, and lists educational use-cases that do not execute network calls.
 
 ---
 
 ## 9. Related Blueprints & Ecosystem Fit
 
-- Neighbor for hash / credential discussion: `wax-verifiable-credential-patterns` (and related)
-- Shares the unsent-request-builder educational pattern with other catalog entries
-- Reinforces Pixel Journey standards around accurate trust labels and non-overclaiming
+- Neighbor: `wax-verifiable-credential-patterns`
+- Shares unsent-request-builder pattern with other catalog educational repos
 
 ---
 
@@ -225,7 +194,6 @@ Offline page that states clearly that no proof is produced, shows the refusal re
 - MIT License
 - Built to teach a negative: what this package is *not*
 - Pixel Journey Design System & Standards alignment
-- See [VERIFICATION-LOG.md](VERIFICATION-LOG.md) and [PUBLIC-READINESS.md](PUBLIC-READINESS.md)
 
 **This blueprint makes the non-claim loud, testable, and hard to accidentally invert.**
 
@@ -233,4 +201,4 @@ Offline page that states clearly that no proof is produced, shows the refusal re
 
 ---
 
-*Last updated: 2026-10-29 — README elevated to full educational blueprint standard while preserving the permanent rule that this repository does not make a proof.*
+*Last updated: 2026-10-29 — Deep educational pass: WHY-NOT-ZK, REQUEST-BUILDERS, expanded architecture, verification log.*
