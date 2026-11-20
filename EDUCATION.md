@@ -40,6 +40,14 @@ npm test
 
 A matching hash is still not ZK: the party who recomputes the hash already has the preimage, or is only checking equality of two digests they both hold.
 
+### Attack → test
+
+| Attack | Lab behavior |
+| --- | --- |
+| Rename `proof: false` → `true` | Violates the course; tests lock `false` |
+| Treat hash match as ZK | why-string refuses |
+| Execute request builders as proofs | builders stay unsent |
+
 ---
 
 ## Masterclass
@@ -53,9 +61,9 @@ A matching hash is still not ZK: the party who recomputes the hash already has t
 
 ### Exercises
 
-1. What is `attestation().proof`? (`false`.)  
-2. Does a matching SHA-256 make this ZK? (No.)  
-3. Are request builders executed? (`executed: false`.)
+1. What is `attestation().proof`? (**`false`**.)  
+2. Does a matching SHA-256 make this ZK? (**No**.)  
+3. Are request builders executed? (**`executed: false`**.)
 
 ---
 
