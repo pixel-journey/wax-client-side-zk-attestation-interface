@@ -3,7 +3,7 @@
 > **Trust Label:** `educational-reference`  
 > **Verification:** [VERIFICATION-LOG.md](VERIFICATION-LOG.md)  
 > **Status:** Educational non-proof reference + Deep documentation pass  
-> **Parent Catalog:** [wax-ecosystem-blueprint-catalog](https://github.com/pixel-journey/wax-ecosystem-blueprint-catalog)
+> **Parent Catalog:** `wax-ecosystem-blueprint-catalog` (private index; not this public course)
 
 **One-sentence goal:** Teach, with working code and tests, that a matching hash is **not** zero-knowledge and that this repository deliberately does **not** create, verify, or attest any zero-knowledge proof on WAX or elsewhere.
 
